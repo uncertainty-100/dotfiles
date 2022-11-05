@@ -49,10 +49,6 @@ set hlsearch
 set incsearch
 set showmatch
 
-" }}}
-
-" VIMSCRIPT {{{
-
 set foldmethod=syntax
 set foldlevel=20
 augroup filetype_vim
@@ -88,6 +84,15 @@ augroup END
     nnoremap <C-L> :nohlsearch<CR><C-L>
 
     let mapleader = "\<tab>"
+
+    function! TemplateHeaderGaurd()
+        let file_name = toupper(substitute(expand('%:t'), '\.', '_', 'g'))
+        return '#ifndef ' . file_name . "\n"
+           \ . '#define ' . file_name . "\n"
+           \ . '#endif'
+    endfunction
+
+    autocmd BufEnter *.h,*.hpp nnoremap <f5> :put<SPACE>=TemplateHeaderGaurd()<CR>ggJjo<CR><CR><UP>
 
 " }}}
 

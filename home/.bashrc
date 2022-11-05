@@ -10,6 +10,7 @@ export XDG_DATA_HOME="$HOME/.local/share"
 
 export GOPATH="$XDG_DATA_HOME/go"
 export EDITOR="/usr/bin/vim"
+export PATH="$PATH:~/.local/bin/"
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return

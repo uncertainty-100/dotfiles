@@ -10,6 +10,7 @@ Plug 'junegunn/fzf.vim'
 
 " C/C++
 Plug 'https://github.com/bfrg/vim-cpp-modern.git'
+Plug 'jackguo380/vim-lsp-cxx-highlight'
 call plug#end()
 
 " }}}
@@ -61,27 +62,26 @@ augroup END
 " }}}
 
 " bindings {{{
-    " movement keys for insert mode
-    " insert mode cannot be inoremap else unable to navigate coc autocomplete
-    imap <c-k> <down>
-    imap <c-l> <up>
-    cnoremap <c-k> <down>
-    cnoremap <c-l> <up>
-
     " forwards delete
     inoremap <c-n> <right><BS>
     inoremap <c-p> <right><esc>dwi
 
     
-    " changes ^H to literal backspace
+    " changes ^H and ^J to literal backspace and literal carriage return
     imap <c-h> <BS>
-
+    imap <expr> <c-j> coc#pum#visible() ? coc#pum#next(1) : "\<cr>"
+    " movement keys for insert mode
+    imap <expr> <c-k> coc#pum#visible() ? coc#pum#prev(1) : "\<up>"
+    cnoremap <c-k> <up>
+    
     " visual mode keep selection
     vmap > >gv
     vmap < <gv
 
     " clears highlight
     nnoremap <C-L> :nohlsearch<CR><C-L>
+
+    nnoremap <c-p> :tabnew<cr>:Files<cr>
 
     let mapleader = "\<tab>"
 
@@ -93,6 +93,16 @@ augroup END
     endfunction
 
     autocmd BufEnter *.h,*.hpp nnoremap <f5> :put<SPACE>=TemplateHeaderGaurd()<CR>ggJjo<CR><CR><UP>
+
+    command! WhichHi call SynStack()
+    command! WhichHighlight call SynStack()
+    
+    function! SynStack()
+        if !exists("*synstack")
+            return
+        endif
+        echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+    endfunc
 
 " }}}
 
@@ -359,6 +369,25 @@ if (has("autocmd"))
 endif
 
 colorscheme onedark
+
+" coc colors
+highlight CocInlayHint ctermfg=102 guifg=#56B6C2 ctermbg=236
+
+
+" semantic highlighting colors
+highlight Keyword ctermfg=170 guifg=#C678DD
+highlight Operator ctermfg=145 guifg=#afafaf
+highlight Namespace ctermfg=186 guifg=#d7d787
+highlight Function ctermfg=68 guifg=#5f87d7
+highlight Identifier ctermfg=87 guifg=#5fffff
+
+highlight! def link CocSemMacro Function
+highlight! def link CocSemStruct Type
+highlight! def link CocSemNamespace Namespace
+
+highlight! def link typescriptVariable Keyword
+
+highlight! def link cppSTLnamespace Namespace
 
 " coc-git colors
 highlight DiffAdd term=bold ctermfg=114 guifg=#98C379 ctermbg=NONE guibg=NONE

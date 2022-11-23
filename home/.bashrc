@@ -55,3 +55,6 @@ if command -v powerline-shell &> /dev/null; then
     . /usr/share/powerline/bindings/bash/powerline.sh
 
 fi
+
+return
+

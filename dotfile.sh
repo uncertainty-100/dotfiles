@@ -18,6 +18,7 @@ for file in $(find $dot_file_dir/home -type f); do
             ln -s $file $HOME/$file_name
         fi
     else
+        mkdir -p $(dirname $HOME/$file_name)
         ln -s $file $HOME/$file_name
     fi
 done

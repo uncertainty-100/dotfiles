@@ -17,6 +17,7 @@ if has('nvim')
     Plug 'mg979/vim-visual-multi', {'branch': 'master'}
     Plug 'https://github.com/kevinhwang91/nvim-ufo.git'
     Plug 'https://github.com/kevinhwang91/promise-async.git'
+    " Plug 'jbyuki/instant.nvim'
 endif
 
 
@@ -419,7 +420,8 @@ if has('nvim')
     set mouse=
     set guicursor=i:block
     lua require'nvim-treesitter.configs'.setup{highlight={enable=true}}
-    "
+    lua require("nvim-autopairs").setup {}
+
     " marks
     lua require'marks'.setup {
                 \        default_mappings = true,

@@ -1,16 +1,31 @@
 
 " vim plug {{{
 call plug#begin()
+" general purpose plugins
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'tmsvg/pear-tree'
 Plug 'itchyny/lightline.vim'
 Plug 'https://github.com/tpope/vim-commentary.git'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+if !has('nvim')
+    Plug 'tmsvg/pear-tree'
+endif
+if has('nvim')
+    Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+    Plug 'windwp/nvim-autopairs'
+    Plug 'chentoast/marks.nvim'
+    Plug 'mg979/vim-visual-multi', {'branch': 'master'}
+    Plug 'https://github.com/kevinhwang91/nvim-ufo.git'
+    Plug 'https://github.com/kevinhwang91/promise-async.git'
+endif
+
 
 " C/C++
-Plug 'https://github.com/bfrg/vim-cpp-modern.git'
-Plug 'jackguo380/vim-lsp-cxx-highlight'
+if !has('nvim')
+    Plug 'https://github.com/bfrg/vim-cpp-modern.git'
+    Plug 'jackguo380/vim-lsp-cxx-highlight'
+endif
+
 call plug#end()
 
 " }}}
@@ -68,9 +83,9 @@ augroup END
 
     
     " changes ^H and ^J to literal backspace and literal carriage return
+    " up and down bindings
     imap <c-h> <BS>
     imap <expr> <c-j> coc#pum#visible() ? coc#pum#next(1) : "\<cr>"
-    " movement keys for insert mode
     imap <expr> <c-k> coc#pum#visible() ? coc#pum#prev(1) : "\<up>"
     cnoremap <c-k> <up>
     
@@ -81,10 +96,15 @@ augroup END
     " clears highlight
     nnoremap <C-L> :nohlsearch<CR><C-L>
 
+    " ctrl-p to fuzzy find a file in new tab
     nnoremap <c-p> :tabnew<cr>:Files<cr>
 
-    let mapleader = "\<tab>"
+    " marks jump to position on line instead of start of line
+    nnoremap ' `
 
+    let mapleader = "\<SPACE>"
+
+    " boilerplate code {{{
     function! TemplateHeaderGaurd()
         let file_name = toupper(substitute(expand('%:t'), '\.', '_', 'g'))
         return '#ifndef ' . file_name . "\n"
@@ -93,7 +113,9 @@ augroup END
     endfunction
 
     autocmd BufEnter *.h,*.hpp nnoremap <f5> :put<SPACE>=TemplateHeaderGaurd()<CR>ggJjo<CR><CR><UP>
+    " }}}
 
+    " highlight analizing
     command! WhichHi call SynStack()
     command! WhichHighlight call SynStack()
     
@@ -385,13 +407,81 @@ highlight! def link CocSemMacro Function
 highlight! def link CocSemStruct Type
 highlight! def link CocSemNamespace Namespace
 
-highlight! def link typescriptVariable Keyword
-
-highlight! def link cppSTLnamespace Namespace
-
 " coc-git colors
 highlight DiffAdd term=bold ctermfg=114 guifg=#98C379 ctermbg=NONE guibg=NONE
 highlight DiffDelete term=bold ctermfg=204 ctermbg=NONE guifg=#E06C75 guibg=NONE
 highlight DiffChange term=bold cterm=NONE ctermfg=180 gui=underline guifg=#E5C07B
 
+" }}}
+
+" nvim {{{
+if has('nvim')
+    set mouse=
+    set guicursor=i:block
+    lua require'nvim-treesitter.configs'.setup{highlight={enable=true}}
+    "
+    " marks
+    lua require'marks'.setup {
+                \        default_mappings = true,
+                \        builtin_marks = { ".", "<", ">", "^" },
+                \        cyclic = true,
+                \        force_write_shada = false,
+                \        refresh_interval = 250,
+                \        sign_priority = { lower=10, upper=15, builtin=8, bookmark=20 },
+                \        excluded_filetypes = {},
+                \        bookmark_0 = {
+                \            sign = "⚑",
+                \            virt_text = "hello world",
+                \            annotate = false,
+                \            },
+                \            mappings = {}
+                \ }
+
+    " folding
+    lua vim.o.foldcolumn = '0'
+                \ vim.o.foldlevel = 99
+                \ vim.o.foldlevelstart = 99
+                \ vim.o.foldenable = true
+                \ vim.o.fillchars = [[eob: ,fold: ,foldopen:▼,foldsep: ,foldclose:⏵]]
+                \ vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+                \ vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+                \ local handler = function(virtText, lnum, endLnum, width, truncate)
+                \     local newVirtText = {}
+                \     local suffix = (' 🡷 %d '):format(endLnum - lnum)
+                \     local sufWidth = vim.fn.strdisplaywidth(suffix)
+                \     local targetWidth = width - sufWidth
+                \     local curWidth = 0
+                \     for _, chunk in ipairs(virtText) do
+                \         local chunkText = chunk[1]
+                \         local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+                \         if targetWidth > curWidth + chunkWidth then
+                \             table.insert(newVirtText, chunk)
+                \         else
+                \             chunkText = truncate(chunkText, targetWidth - curWidth)
+                \             local hlGroup = chunk[2]
+                \             table.insert(newVirtText, {chunkText, hlGroup})
+                \             chunkWidth = vim.fn.strdisplaywidth(chunkText)
+                \             if curWidth + chunkWidth < targetWidth then
+                \                 suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth)
+                \             end
+                \             break
+                \         end
+                \         curWidth = curWidth + chunkWidth
+                \     end
+                \     table.insert(newVirtText, {suffix, 'MoreMsg'})
+                \     return newVirtText
+                \ end
+                \ require('ufo').setup({
+                \     fold_virt_text_handler = handler,
+                \     provider_selector = function(bufnr, filetype, buftype)
+                \         return {'treesitter', 'indent'}
+                \     end
+                \ })
+
+    tnoremap <nowait> <esc><c-w>n <c-\><c-n>
+    tnoremap <nowait> <esc><c-w>h <c-\><c-n><c-w>h
+    tnoremap <nowait> <esc><c-w>j <c-\><c-n><c-w>j
+    tnoremap <nowait> <esc><c-w>k <c-\><c-n><c-w>k
+    tnoremap <nowait> <esc><c-w>l <c-\><c-n><c-w>l
+endif
 " }}}

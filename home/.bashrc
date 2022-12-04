@@ -23,8 +23,12 @@ export LC_ALL="C.UTF-8"
 
 
 set -o vi
-alias make="make -j$(python3 -c "import os; print(os.cpu_count())")"
+alias make="make -j$(nproc)"
 alias vi='vim'
+
+if command -v nvim &> /dev/null; then
+    alias vim='nvim'
+fi
 
 if command -v exa &> /dev/null; then
     alias ls='exa'

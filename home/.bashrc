@@ -35,7 +35,7 @@ if command -v exa &> /dev/null; then
 fi
 
 if command -v bat &> /dev/null; then
-    alias cat='bat -P'
+    alias cat='bat -pp'
 fi
 
 if command -v rg &> /dev/null; then

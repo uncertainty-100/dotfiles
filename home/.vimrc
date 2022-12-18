@@ -7,6 +7,7 @@ Plug 'itchyny/lightline.vim'
 Plug 'https://github.com/tpope/vim-commentary.git'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'Yggdroot/indentLine'
 if !has('nvim')
     Plug 'tmsvg/pear-tree'
 endif
@@ -75,6 +76,8 @@ augroup filetype_vim
     autocmd BufRead,BufNewFile makefile,Makefile,MakeFile,MAKEFILE setlocal foldmethod=indent
 augroup END
 
+autocmd BufWritePre * %s/\s\+$//e
+
 " }}}
 
 " bindings {{{
@@ -82,14 +85,20 @@ augroup END
     inoremap <c-n> <right><BS>
     inoremap <c-p> <right><esc>dwi
 
-    
+    nnoremap <c-u> <c-u>zz
+    nnoremap <c-d> <c-d>zz
+    nnoremap n nzz
+    nnoremap N Nzz
+
+    inoremap jk <esc>
+
     " changes ^H and ^J to literal backspace and literal carriage return
     " up and down bindings
     imap <c-h> <BS>
     imap <expr> <c-j> coc#pum#visible() ? coc#pum#next(1) : "\<cr>"
     imap <expr> <c-k> coc#pum#visible() ? coc#pum#prev(1) : "\<up>"
     cnoremap <c-k> <up>
-    
+
     " visual mode keep selection
     vmap > >gv
     vmap < <gv
@@ -119,7 +128,7 @@ augroup END
     " highlight analizing
     command! WhichHi call SynStack()
     command! WhichHighlight call SynStack()
-    
+
     function! SynStack()
         if !exists("*synstack")
             return
@@ -132,7 +141,7 @@ augroup END
 " plugins {{{
 
 " coc {{{
-        
+
 " Some servers have issues with backup files, see #649.
 set nobackup
 set nowritebackup
@@ -377,6 +386,8 @@ augroup END
 
 " }}}
 
+let g:indentLine_char = '▏'
+let g:indentLine_color_term = 237
 
 " }}}
 
@@ -420,7 +431,7 @@ if has('nvim')
     set mouse=
     set guicursor=i:block
     lua require'nvim-treesitter.configs'.setup{highlight={enable=true}}
-    lua require("nvim-autopairs").setup {}
+    lua require("nvim-autopairs").setup({})
 
     " marks
     lua require'marks'.setup {
